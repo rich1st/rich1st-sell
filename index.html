@@ -4,11 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>أفضل متجر لشراء متابعين وسائل التواصل الاجتماعي</title>
-  <title> EZFN SELLINGS SERVICE</title> 
   <!-- W3.CSS from w3schools.com -->
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <!-- Google Fonts -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Tajawal">
+  <!-- jQuery for templating and extra effects -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Google reCAPTCHA v2 Invisible -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     body {
       font-family: 'Tajawal', sans-serif;
@@ -28,6 +31,7 @@
       background-color: white;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      padding: 15px;
     }
     .w3-button { margin-top: 10px; }
     .price { font-size: 1.2em; color: #333; }
@@ -106,49 +110,91 @@
     }
   </style>
   <script>
-    // Function to show Discord info for the Instagram Likes service
-    function showDiscordInfo() {
-      alert("ضيف الشخص فديسكورد\nاليوزر: @9li2\nالدفع ثابت: VF CASH");
-    }
+    // Global variable to hold pending order details
+    window.pendingOrder = null;
 
-    // Function to handle the purchase process: ask for quantity and open an email draft
+    // Function to trigger a purchase.
+    // Now we remove the custom math captcha and instead use Google reCAPTCHA.
     function purchaseService(serviceName) {
       var quantity = prompt("ادخل الكمية المطلوبة:");
-      if (quantity != null && quantity != "") {
-          var emailBody = "Hi, i wanna to buy (" + serviceName + ")\\n\\nQuantity: " + quantity + "\\n\\nSo, please contact me fast.";
-          // Opens the default email client using mailto:
-          window.location.href = "mailto:botserverbotbot@gmail.com?subject=" + encodeURIComponent("Purchase Request: " + serviceName) + "&body=" + encodeURIComponent(emailBody);
-          showAutoReply();
+      if (quantity != null && quantity.trim() !== "") {
+          // Store the order details and execute the reCAPTCHA.
+          window.pendingOrder = { serviceName: serviceName, quantity: quantity };
+          // Execute the invisible reCAPTCHA.
+          grecaptcha.execute();
       }
     }
 
-    // Function to show auto reply modal with fixed message
-    function showAutoReply() {
-      var modal = document.getElementById("autoReplyModal");
-      modal.style.display = "block";
+    // This function is called automatically by reCAPTCHA
+    function onCaptchaSuccess(token) {
+      // After the captcha is validated, process the order:
+      if (window.pendingOrder) {
+        var orderMessage = "Service: " + window.pendingOrder.serviceName + "\nQuantity: " + window.pendingOrder.quantity;
+        console.log("Order Details:\n" + orderMessage);
+        
+        // Discord intent URL to trigger the Android Discord app automatically
+        var discordLink = "intent://discordapp.com/users/9li2#Intent;package=com.discord;scheme=discord;end";
+        window.location.href = discordLink;
+        showDiscordInfo();
+        window.pendingOrder = null;
+      }
+    }
+
+    // Function to show Discord info for the service as a modal
+    function showDiscordInfo() {
+      $("#autoReplyModal").fadeIn();
     }
 
     // Function to close the auto reply modal
     function closeModal() {
-      document.getElementById("autoReplyModal").style.display = "none";
+      $("#autoReplyModal").fadeOut();
     }
 
     // Close modal when clicking outside of its content
     window.onclick = function(event) {
-      var modal = document.getElementById("autoReplyModal");
-      if (event.target == modal) {
-          modal.style.display = "none";
+      if ($(event.target).hasClass("modal")) {
+          closeModal();
       }
     }
 
-    // Function to simulate sending a contact email (for the contact form)
+    // jQuery function for contact form submission 
     function sendContactEmail() {
-      alert("تم إرسال رسالتك بنجاح. سنقوم بالتواصل معك قريبا.");
+      if ($("#name").val().trim() && $("#email").val().trim() && $("#message").val().trim()) {
+          alert("تم إرسال رسالتك بنجاح. سنقوم بالتواصل معك قريبا.");
+      } else {
+          alert("يرجى ملء جميع الحقول.");
+          return false;
+      }
       return false;
     }
+
+    // jQuery templating example to add services dynamically
+    $(document).ready(function(){
+      var serviceTemplate = `
+      <div class="service-card w3-card-4">
+        <div class="w3-container">
+          <h2>{{serviceTitle}}</h2>
+          <p>{{serviceDescription}}</p>
+          <button class="w3-button {{buttonClass}}" onclick="purchaseService('{{serviceTitle}}')">شراء</button>
+        </div>
+      </div>
+      `;
+      var newService = {
+          serviceTitle: "مثال خدمة إضافية",
+          serviceDescription: "تفاصيل خدمة جديدة لزيادة الأمان والفعالية.",
+          buttonClass: "w3-blue"
+      };
+      var cardHTML = serviceTemplate
+          .replace(/{{serviceTitle}}/g, newService.serviceTitle)
+          .replace("{{serviceDescription}}", newService.serviceDescription)
+          .replace("{{buttonClass}}", newService.buttonClass);
+      $("#servicesContainer").append(cardHTML);
+    });
   </script>
 </head>
 <body>
+  <!-- Invisible reCAPTCHA widget -->
+  <div class="g-recaptcha" data-sitekey="6Lfxbw4rAAAAABC2qtwCksA0kmH5mHHbJkAp5WQl" data-size="invisible" data-callback="onCaptchaSuccess"></div>
 
   <!-- Header Section -->
   <div class="header">
@@ -157,7 +203,7 @@
   </div>
 
   <!-- Main Services Section -->
-  <div class="w3-container">
+  <div id="servicesContainer" class="w3-container">
 
     <!-- Service 1: Instagram Likes -->
     <div class="service-card w3-card-4">
@@ -240,105 +286,13 @@
   <div id="autoReplyModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
-      <p>hi user. thanks for selecting service and quantity.</p>
-      <p>To contact with owner and buy your service please contact on Discord:</p>
-      <p>@9li2</p>
-      <p>and type your Discord name and send this message again to the same email and wait 1-5 minutes to accept friend and start selling for you the service.</p>
-      <p>SERVER CASH: VF CASH $</p>
+      <h3>شكراً لاختيارك الخدمة</h3>
+      <p>للإكمال، يرجى فتح Discord وإرسال طلب صداقة للحساب التالي:</p>
+      <p><strong>@9li2</strong></p>
+      <p>ثم أرسل رسالتك عبر Discord لمتابعة الطلب.</p>
+      <p><em>ملاحظة: لن يتم إرسال طلب الصداقة تلقائياً بسبب قيود الأمان.</em></p>
     </div>
   </div>
 
-  <!-- Optional: Google Analytics integration (commented out) -->
-  <!--
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKRF1Y5LBY"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-JKRF1Y5LBY');
-  </script>
-  -->
-
 </body>
 </html>
-<!-- BEGIN FILLER LINES TO REACH APPROXIMATELY 700 LINES -->
-<!-- Filler line 175 -->
-<!-- Filler line 176 -->
-<!-- Filler line 177 -->
-<!-- Filler line 178 -->
-<!-- Filler line 179 -->
-<!-- Filler line 180 -->
-<!-- Filler line 181 -->
-<!-- Filler line 182 -->
-<!-- Filler line 183 -->
-<!-- Filler line 184 -->
-<!-- Filler line 185 -->
-<!-- Filler line 186 -->
-<!-- Filler line 187 -->
-<!-- Filler line 188 -->
-<!-- Filler line 189 -->
-<!-- Filler line 190 -->
-<!-- Filler line 191 -->
-<!-- Filler line 192 -->
-<!-- Filler line 193 -->
-<!-- Filler line 194 -->
-<!-- Filler line 195 -->
-<!-- Filler line 196 -->
-<!-- Filler line 197 -->
-<!-- Filler line 198 -->
-<!-- Filler line 199 -->
-<!-- Filler line 200 -->
-<!-- Filler line 201 -->
-<!-- Filler line 202 -->
-<!-- Filler line 203 -->
-<!-- Filler line 204 -->
-<!-- Filler line 205 -->
-<!-- Filler line 206 -->
-<!-- Filler line 207 -->
-<!-- Filler line 208 -->
-<!-- Filler line 209 -->
-<!-- Filler line 210 -->
-<!-- Filler line 211 -->
-<!-- Filler line 212 -->
-<!-- Filler line 213 -->
-<!-- Filler line 214 -->
-<!-- Filler line 215 -->
-<!-- Filler line 216 -->
-<!-- Filler line 217 -->
-<!-- Filler line 218 -->
-<!-- Filler line 219 -->
-<!-- Filler line 220 -->
-<!-- Filler line 221 -->
-<!-- Filler line 222 -->
-<!-- Filler line 223 -->
-<!-- Filler line 224 -->
-<!-- Filler line 225 -->
-<!-- Filler line 226 -->
-<!-- Filler line 227 -->
-<!-- Filler line 228 -->
-<!-- Filler line 229 -->
-<!-- Filler line 230 -->
-<!-- Filler line 231 -->
-<!-- Filler line 232 -->
-<!-- Filler line 233 -->
-<!-- Filler line 234 -->
-<!-- Filler line 235 -->
-<!-- Filler line 236 -->
-<!-- Filler line 237 -->
-<!-- Filler line 238 -->
-<!-- Filler line 239 -->
-<!-- Filler line 240 -->
-<!-- Filler line 241 -->
-<!-- Filler line 242 -->
-<!-- Filler line 243 -->
-<!-- Filler line 244 -->
-<!-- Filler line 245 -->
-<!-- Filler line 246 -->
-<!-- Filler line 247 -->
-<!-- Filler line 248 -->
-<!-- Filler line 249 -->
-<!-- Filler line 250 -->
-<!-- Filler line 251 -->
-<!-- Filler line 252 -->
-<!-- Filler line 253 -->
-<!-- Filler line
