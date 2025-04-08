@@ -15,37 +15,62 @@
   <style>
     body {
       font-family: 'Tajawal', sans-serif;
-      background-color: #f8f8f8;
+      background: linear-gradient(135deg, #e0f7fa, #f8f8f8);
       margin: 0;
       padding: 0;
+      transition: background-color 0.3s ease-in-out;
     }
     .header {
-      background-color: #4CAF50;
-      color: white;
-      padding: 30px 20px;
+      background: linear-gradient(135deg, #43a047, #66bb6a);
+      color: #fff;
+      padding: 40px 20px;
       text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    .header p {
+      margin: 5px 0 0;
+      font-size: 1.1em;
     }
     .service-card {
       margin: 20px auto;
       max-width: 600px;
-      background-color: white;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      padding: 15px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: transform 0.3s ease;
     }
-    .w3-button { margin-top: 10px; }
-    .price { font-size: 1.2em; color: #333; }
-    .promo { color: #e91e63; font-weight: bold; }
-    /* Additional styling for extended design */
-    .feedbacks {
+    .service-card:hover {
+      transform: scale(1.02);
+    }
+    .w3-button {
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .w3-button:hover {
+      opacity: 0.9;
+    }
+    .price {
+      font-size: 1.2em;
+      color: #333;
+    }
+    .promo {
+      color: #e91e63;
+      font-weight: bold;
+    }
+    .feedbacks, .contact-form {
       max-width: 800px;
       margin: 40px auto;
       background: #fff;
-      padding: 20px;
+      padding: 20px 30px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    .feedbacks h2 {
+    .feedbacks h2, .contact-form h2 {
       text-align: center;
       margin-bottom: 20px;
     }
@@ -53,29 +78,23 @@
       border-bottom: 1px solid #e0e0e0;
       padding: 10px 0;
     }
-    .contact-form {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
     .contact-form input,
     .contact-form textarea {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
+      padding: 12px;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-size: 1em;
     }
     .contact-form button {
-      background: #4CAF50;
+      background: #43a047;
       color: #fff;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 25px;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 1em;
     }
     .modal {
       display: none;
@@ -94,19 +113,21 @@
       padding: 20px;
       border: 1px solid #888;
       width: 80%;
+      max-width: 500px;
       border-radius: 8px;
+      text-align: center;
     }
     .close {
       color: #aaa;
       float: right;
       font-size: 28px;
       font-weight: bold;
+      cursor: pointer;
     }
     .close:hover,
     .close:focus {
       color: black;
       text-decoration: none;
-      cursor: pointer;
     }
   </style>
   <script>
@@ -114,38 +135,49 @@
     window.pendingOrder = null;
 
     // Function to trigger a purchase.
-    // Now we remove the custom math captcha and instead use Google reCAPTCHA.
+    // Now using Google reCAPTCHA for order validation.
     function purchaseService(serviceName) {
       var quantity = prompt("ادخل الكمية المطلوبة:");
       if (quantity != null && quantity.trim() !== "") {
-          // Store the order details and execute the reCAPTCHA.
-          window.pendingOrder = { serviceName: serviceName, quantity: quantity };
-          // Execute the invisible reCAPTCHA.
-          grecaptcha.execute();
+        // Store the order details and execute the reCAPTCHA.
+        window.pendingOrder = { serviceName: serviceName, quantity: quantity };
+        // Execute the invisible reCAPTCHA.
+        grecaptcha.execute();
       }
     }
 
     // This function is called automatically by reCAPTCHA
     function onCaptchaSuccess(token) {
-      // After the captcha is validated, process the order:
       if (window.pendingOrder) {
         var orderMessage = "Service: " + window.pendingOrder.serviceName + "\nQuantity: " + window.pendingOrder.quantity;
         console.log("Order Details:\n" + orderMessage);
         
-        // Discord intent URL to trigger the Android Discord app automatically
-        var discordLink = "intent://discordapp.com/users/9li2#Intent;package=com.discord;scheme=discord;end";
+        var discordLink = "";
+        // Check device type using the user agent
+        if (/android/i.test(navigator.userAgent)) {
+          // Android: open Discord app using intent, bypassing Play Store
+          discordLink = "intent://discordapp.com/users/9li2#Intent;package=com.discord;scheme=discord;end";
+        } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          // iOS: using Discord URL scheme
+          discordLink = "discord://discordapp.com/users/9li2";
+        } else {
+          // PC and others: attempt to open the Discord application
+          // Note: auto-opening friend list and typing cannot be automated; instruct the user instead.
+          discordLink = "discord://-/users/9li2";
+        }
+
         window.location.href = discordLink;
         showDiscordInfo();
         window.pendingOrder = null;
       }
     }
 
-    // Function to show Discord info for the service as a modal
+    // Function to show Discord info in a modal popup
     function showDiscordInfo() {
       $("#autoReplyModal").fadeIn();
     }
 
-    // Function to close the auto reply modal
+    // Function to close the modal popup
     function closeModal() {
       $("#autoReplyModal").fadeOut();
     }
@@ -153,22 +185,22 @@
     // Close modal when clicking outside of its content
     window.onclick = function(event) {
       if ($(event.target).hasClass("modal")) {
-          closeModal();
+        closeModal();
       }
     }
 
-    // jQuery function for contact form submission 
+    // jQuery function for contact form submission
     function sendContactEmail() {
       if ($("#name").val().trim() && $("#email").val().trim() && $("#message").val().trim()) {
-          alert("تم إرسال رسالتك بنجاح. سنقوم بالتواصل معك قريبا.");
+        alert("تم إرسال رسالتك بنجاح. سنقوم بالتواصل معك قريبا.");
       } else {
-          alert("يرجى ملء جميع الحقول.");
-          return false;
+        alert("يرجى ملء جميع الحقول.");
+        return false;
       }
       return false;
     }
 
-    // jQuery templating example to add services dynamically
+    // Example of adding services dynamically with templating
     $(document).ready(function(){
       var serviceTemplate = `
       <div class="service-card w3-card-4">
@@ -287,12 +319,11 @@
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
       <h3>شكراً لاختيارك الخدمة</h3>
-      <p>للإكمال، يرجى فتح Discord وإرسال طلب صداقة للحساب التالي:</p>
-      <p><strong>@9li2</strong></p>
-      <p>ثم أرسل رسالتك عبر Discord لمتابعة الطلب.</p>
-      <p><em>ملاحظة: لن يتم إرسال طلب الصداقة تلقائياً بسبب قيود الأمان.</em></p>
+      <p>تم فتح تطبيق Discord بنجاح.</p>
+      <p>الرجاء الانتقال إلى قائمة الأصدقاء والبحث عن <strong>@9li2</strong> لإرسال طلب الصداقة ومتابعة الطلب.</p>
+      <p><em>ملاحظة: لا يمكن تطبيق أوتوماتيكي لكتابة اسم المستخدم بسبب قيود الأمان.</em></p>
     </div>
   </div>
 
 </body>
-</html>
+  </html>
