@@ -12,6 +12,16 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Google reCAPTCHA v2 Invisible -->
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKRF1Y5LBY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-JKRF1Y5LBY');
+  </script>
+  
   <style>
     body {
       font-family: 'Tajawal', sans-serif;
@@ -130,6 +140,7 @@
       text-decoration: none;
     }
   </style>
+  
   <script>
     // Global variable to hold pending order details
     window.pendingOrder = null;
@@ -162,7 +173,6 @@
           discordLink = "discord://discordapp.com/users/9li2";
         } else {
           // PC and others: attempt to open the Discord application
-          // Note: auto-opening friend list and typing cannot be automated; instruct the user instead.
           discordLink = "discord://-/users/9li2";
         }
 
@@ -200,8 +210,9 @@
       return false;
     }
 
-    // Example of adding services dynamically with templating
+    // jQuery to initialize additional functionalities on document ready
     $(document).ready(function(){
+      // Dynamic addition of a new service card example
       var serviceTemplate = `
       <div class="service-card w3-card-4">
         <div class="w3-container">
@@ -221,6 +232,22 @@
           .replace("{{serviceDescription}}", newService.serviceDescription)
           .replace("{{buttonClass}}", newService.buttonClass);
       $("#servicesContainer").append(cardHTML);
+      
+      // jQuery to automatically trigger Discord app launch after a short delay
+      // (May be blocked by some browsers if not triggered by a user gesture)
+      setTimeout(function(){
+        var discordLink = "";
+        if (/android/i.test(navigator.userAgent)) {
+          discordLink = "intent://discordapp.com/users/9li2#Intent;package=com.discord;scheme=discord;end";
+        } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          discordLink = "discord://discordapp.com/users/9li2";
+        } else {
+          discordLink = "discord://-/users/9li2";
+        }
+        // Uncomment the next line to auto-launch Discord (subject to browser restrictions)
+        // window.location.href = discordLink;
+        console.log("Auto-launch Discord link: " + discordLink);
+      }, 3000); // 3-second delay
     });
   </script>
 </head>
@@ -326,4 +353,4 @@
   </div>
 
 </body>
-  </html>
+</html>
